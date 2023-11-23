@@ -1,5 +1,6 @@
 package bankingSystem;
 
+
 // Employee class
 abstract public class Employee {
     protected String name;
@@ -8,14 +9,15 @@ abstract public class Employee {
         this.name = name;
     }
 
-    abstract void lookup(String accountHolder, Bank bank);
+    abstract public void lookup(String accountHolder, Bank bank);
 
-    abstract void approveLoan(Bank bank);
+    abstract public void approveLoan(Bank bank);
 
-    abstract void changeInterestRate(String accountType, double newRate, Bank bank);
+    abstract public void changeInterestRate(String accountType, double newRate, Bank bank);
 
-    abstract void seeInternalFund(Bank bank);
+    abstract public void seeInternalFund(Bank bank);
 }
+
 
 // ManagingDirector class
 class ManagingDirector extends Employee {
@@ -24,25 +26,20 @@ class ManagingDirector extends Employee {
     }
 
     @Override
-    void lookup(String accountHolder, Bank bank) {
-        bank.lookup(accountHolder);
-    }
+    public void lookup(String accountHolder, Bank bank) { bank.lookup(accountHolder); }
 
     @Override
-    void approveLoan(Bank bank) {
-        bank.approveLoan();
-    }
+    public void approveLoan(Bank bank) { bank.approveLoan(); }
 
     @Override
-    void changeInterestRate(String accountType, double newRate, Bank bank) {
+    public void changeInterestRate(String accountType, double newRate, Bank bank) {
         bank.changeInterestRate(accountType, newRate);
     }
 
     @Override
-    void seeInternalFund(Bank bank) {
-        bank.seeInternalFund();
-    }
+    public void seeInternalFund(Bank bank) { bank.seeInternalFund(); }
 }
+
 
 // Officer class
 class Officer extends Employee {
@@ -51,25 +48,26 @@ class Officer extends Employee {
     }
 
     @Override
-    void lookup(String accountHolder, Bank bank) {
+    public void lookup(String accountHolder, Bank bank) {
         bank.lookup(accountHolder);
     }
 
     @Override
-    void approveLoan(Bank bank) {
+    public void approveLoan(Bank bank) {
         bank.approveLoan();
     }
 
     @Override
-    void changeInterestRate(String accountType, double newRate, Bank bank) {
+    public void changeInterestRate(String accountType, double newRate, Bank bank) {
         System.out.println("You don’t have permission for this operation");
     }
 
     @Override
-    void seeInternalFund(Bank bank) {
+    public void seeInternalFund(Bank bank) {
         System.out.println("You don’t have permission for this operation");
     }
 }
+
 
 // Cashier class
 class Cashier extends Employee {
@@ -78,22 +76,22 @@ class Cashier extends Employee {
     }
 
     @Override
-    void lookup(String accountHolder, Bank bank) {
+    public void lookup(String accountHolder, Bank bank) {
         bank.lookup(accountHolder);
     }
 
     @Override
-    void approveLoan(Bank bank) {
+    public void approveLoan(Bank bank) {
         System.out.println("You don’t have permission for this operation");
     }
 
     @Override
-    void changeInterestRate(String accountType, double newRate, Bank bank) {
+    public void changeInterestRate(String accountType, double newRate, Bank bank) {
         System.out.println("You don’t have permission for this operation");
     }
 
     @Override
-    void seeInternalFund(Bank bank) {
+    public void seeInternalFund(Bank bank) {
         System.out.println("You don’t have permission for this operation");
     }
 }
