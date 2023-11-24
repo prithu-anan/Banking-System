@@ -6,7 +6,7 @@ abstract public class Account {
     protected String accountHolder;
     protected double balance;
     protected double loanAmount;
-    protected double MAX_LOAN = Double.MAX_VALUE;
+    protected double maxLoan = Double.MAX_VALUE;
 
     Account(String accountHolder, double initialDeposit) {
         this.accountHolder = accountHolder;
@@ -30,7 +30,7 @@ abstract public class Account {
 
     void setLoanAmount(double loanAmount) { this.loanAmount += loanAmount; }
 
-    double getMaxLoan() { return MAX_LOAN; }
+    double getMaxLoan() { return maxLoan; }
 }
 
 
@@ -38,7 +38,7 @@ abstract public class Account {
 class SavingsAccount extends Account {
     SavingsAccount(String accountHolder, double initialDeposit) {
         super(accountHolder, initialDeposit);
-        super.MAX_LOAN = 10000;
+        super.maxLoan = 10000;
     }
 
     @Override
@@ -63,7 +63,7 @@ class StudentAccount extends Account {
 
     StudentAccount(String accountHolder, double initialDeposit) {
         super(accountHolder, initialDeposit);
-        super.MAX_LOAN = 1000;
+        super.maxLoan = 1000;
         MAX_WITHDRAWAL = 1000;
     }
 
@@ -91,7 +91,7 @@ class FixedDepositAccount extends Account {
 
     FixedDepositAccount(String accountHolder, double initialDeposit) {
         super(accountHolder, initialDeposit);
-        super.MAX_LOAN = 100000;
+        super.maxLoan = 100000;
         hasReachedMaturityPeriod = false;
     }
 
