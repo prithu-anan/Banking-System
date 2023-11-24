@@ -111,9 +111,9 @@ class FixedDepositAccount extends Account {
         } else System.out.println("Invalid transaction; current balance " + balance + "$");
     }
 
-    static double getMinInitialDeposit() { return MIN_INITIAL_DEPOSIT; }
-
     public void setHasReachedMaturityPeriod(boolean hasReachedMaturityPeriod) {
         this.hasReachedMaturityPeriod = hasReachedMaturityPeriod;
     }
+
+    static double getMinInitialDeposit() { return MIN_INITIAL_DEPOSIT; }
 }
