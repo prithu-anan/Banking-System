@@ -9,13 +9,13 @@ abstract public class Employee {
         this.name = name;
     }
 
-    abstract public void lookup(String accountHolder, Bank bank);
+    abstract public double lookup(String accountHolder, Bank bank);
 
     abstract public void approveLoan(Bank bank);
 
     abstract public void changeInterestRate(String accountType, double newRate, Bank bank);
 
-    abstract public void seeInternalFund(Bank bank);
+    abstract public double seeInternalFund(Bank bank);
 }
 
 
@@ -26,7 +26,7 @@ class ManagingDirector extends Employee {
     }
 
     @Override
-    public void lookup(String accountHolder, Bank bank) { bank.lookup(accountHolder); }
+    public double lookup(String accountHolder, Bank bank) { return bank.lookup(accountHolder); }
 
     @Override
     public void approveLoan(Bank bank) { bank.approveLoan(); }
@@ -37,7 +37,7 @@ class ManagingDirector extends Employee {
     }
 
     @Override
-    public void seeInternalFund(Bank bank) { bank.seeInternalFund(); }
+    public double seeInternalFund(Bank bank) { return bank.seeInternalFund(); }
 }
 
 
@@ -48,8 +48,8 @@ class Officer extends Employee {
     }
 
     @Override
-    public void lookup(String accountHolder, Bank bank) {
-        bank.lookup(accountHolder);
+    public double lookup(String accountHolder, Bank bank) {
+        return bank.lookup(accountHolder);
     }
 
     @Override
@@ -63,8 +63,9 @@ class Officer extends Employee {
     }
 
     @Override
-    public void seeInternalFund(Bank bank) {
+    public double seeInternalFund(Bank bank) {
         System.out.println("You don’t have permission for this operation");
+        return 0;
     }
 }
 
@@ -76,8 +77,8 @@ class Cashier extends Employee {
     }
 
     @Override
-    public void lookup(String accountHolder, Bank bank) {
-        bank.lookup(accountHolder);
+    public double lookup(String accountHolder, Bank bank) {
+        return bank.lookup(accountHolder);
     }
 
     @Override
@@ -91,7 +92,8 @@ class Cashier extends Employee {
     }
 
     @Override
-    public void seeInternalFund(Bank bank) {
+    public double seeInternalFund(Bank bank) {
         System.out.println("You don’t have permission for this operation");
+        return 0;
     }
 }

@@ -31,6 +31,17 @@ public class Bank {
         }
     }
 
+    private enum EmployeeType {
+        OFFICER(2),
+        CASHIER(5);
+
+        private int count;
+
+        EmployeeType(int count) {
+            this.count = count;
+        }
+    }
+
     public Bank() {
         this.internalFunds = INITIAL_FUNDS;
         this.year = 0;
@@ -41,8 +52,8 @@ public class Bank {
         this.operations = new ArrayList<>();
 
         employees.put("MD", new ManagingDirector("MD"));
-        for(int i = 1; i <= 2; i++) { employees.put("O" + i, new Officer("O" + i)); }
-        for(int i = 1; i <= 5; i++) { employees.put("C" + i, new Cashier("C" + i)); }
+        for(int i = 1; i <= EmployeeType.OFFICER.count; i++) { employees.put("O" + i, new Officer("O" + i)); }
+        for(int i = 1; i <= EmployeeType.CASHIER.count; i++) { employees.put("C" + i, new Cashier("C" + i)); }
 
         System.out.println("Bank Created; MD, O1, O2, C1, C2, C3, C4, C5 created");
     }
@@ -127,7 +138,7 @@ public class Bank {
         }
     }
 
-    public void approveLoan() {
+    void approveLoan() {
         Iterator<Loan> iterator = loanRequests.iterator();
 
         while (iterator.hasNext()) {
@@ -144,7 +155,7 @@ public class Bank {
         loanRequestPending = false;
     }
 
-    public void queryBalance(String accountHolder) {
+    public double queryBalance(String accountHolder) {
         Account account = accounts.get(accountHolder.toLowerCase());
         if (account != null) {
             if(account.getLoanAmount() == 0)
@@ -152,8 +163,10 @@ public class Bank {
             else
                 System.out.println("Current Balance " + account.getBalance()
                         + "$, loan " + account.getLoanAmount() + "$");
+            return account.getBalance();
         } else {
             System.out.println("Error: Account not found for " + accountHolder);
+            return 0;
         }
     }
 
@@ -162,9 +175,21 @@ public class Bank {
 
         for (Account account : accounts.values()) {
             double interest = account.getBalance() * getInterestRate(account);
-            account.deposit(interest);
-            account.deposit(- LOAN_INTEREST_RATE * account.getLoanAmount());
-            if(!(account instanceof StudentAccount)) account.deposit(-SERVICE_CHARGE);
+            double loanInterest = account.getLoanAmount() * LOAN_INTEREST_RATE;
+
+            account.setBalance(account.getBalance() + interest);
+
+            if(account.getBalance() < loanInterest) {
+                account.setBalance(0);
+                account.addLoanAmount(loanInterest - account.getBalance());
+            } else account.setBalance(-loanInterest);
+
+            if(!(account instanceof StudentAccount))
+                if(account.getBalance() < SERVICE_CHARGE) {
+                    account.setBalance(0);
+                    account.addLoanAmount(SERVICE_CHARGE - account.getBalance());
+                } else account.setBalance(account.getBalance() - SERVICE_CHARGE);
+
             if(account instanceof FixedDepositAccount) ((FixedDepositAccount) account).setHasReachedMaturityPeriod(true);
         }
 
@@ -182,35 +207,39 @@ public class Bank {
         return 0;
     }
 
-    public void changeInterestRate(String accountType, double newRate) {
+    void changeInterestRate(String accountType, double newRate) {
+        final double roi = newRate / 100.0;
         if (accountType.equalsIgnoreCase("savings")) {
-            AccountType.SAVINGS_ACCOUNT.interestRate = newRate;
+            AccountType.SAVINGS_ACCOUNT.interestRate = roi;
             System.out.println("Interest rate for Savings Account changed to " + newRate);
         } else if (accountType.equalsIgnoreCase("student")) {
-            AccountType.STUDENT_ACCOUNT.interestRate = newRate;
+            AccountType.STUDENT_ACCOUNT.interestRate = roi;
             System.out.println("Interest rate for Student Account changed to " + newRate);
         } else if (accountType.equalsIgnoreCase("fixed deposit")) {
-            AccountType.FIXED_DEPOSIT_ACCOUNT.interestRate = newRate;
+            AccountType.FIXED_DEPOSIT_ACCOUNT.interestRate = roi;
             System.out.println("Interest rate for Fixed Deposit Account changed to " + newRate);
         } else {
             System.out.println("Error: Invalid account type");
         }
     }
 
-    public void lookup(String accountHolder) {
+    double lookup(String accountHolder) {
         Account account = accounts.get(accountHolder.toLowerCase());
         if (account != null) {
             System.out.println(accountHolder + "'s current balance " + account.getBalance() + "$");
+            return account.getBalance();
         } else {
             System.out.println("Error: Account not found for " + accountHolder);
+            return 0;
         }
     }
 
-    public void seeInternalFund() {
+    double seeInternalFund() {
         System.out.println("Internal Funds: " + internalFunds + "$");
+        return internalFunds;
     }
 
-    public boolean isExist(String name) {
+    public boolean isAccountExist(String name) {
         String lowercaseName = name.toLowerCase();
         return accounts.containsKey(lowercaseName);
     }
@@ -230,6 +259,28 @@ public class Bank {
             System.out.println("Operation Performed: " + operation.details() +
                     ", By: " + operation.accountHolder() +
                     ", In Year: " + operation.year());
+        }
+    }
+
+    public Employee createEmployee(String type) {
+        Employee employee;
+        switch (type.toUpperCase()) {
+            case "O" -> {
+                employee = new Officer("O" + ++EmployeeType.OFFICER.count);
+                employees.put("O" + EmployeeType.OFFICER.count, employee);
+                System.out.println("O" + EmployeeType.OFFICER.count + " created");
+                return employee;
+            }
+            case "C" -> {
+                employee = new Cashier("C" + ++EmployeeType.CASHIER.count);
+                employees.put("C" + EmployeeType.CASHIER.count, employee);
+                System.out.println("C" + EmployeeType.CASHIER.count + " created");
+                return employee;
+            }
+            default -> {
+                System.out.println("Error: Invalid employee type");
+                return null;
+            }
         }
     }
 }

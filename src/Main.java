@@ -60,7 +60,7 @@ public class Main {
                         bank.addOperation(command, name);
                         processEmployeeCommands(scanner, bank, name);
                     } else {
-                        if(bank.isExist(name)) {
+                        if(bank.isAccountExist(name)) {
                             System.out.println("Welcome back, " + name);
                             bank.addOperation(command, name);
                             processAccountCommands(scanner, bank, name);
