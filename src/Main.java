@@ -1,14 +1,13 @@
-import bankingSystem.Bank;
-import bankingSystem.Employee;
 import java.util.*;
+import bankingSystem.*;
 
 public class Main {
     public static void main(String[] args) {
+        System.out.println("Enter a command (type 'exit' to quit): ");
+
         Bank bank = new Bank();
         Scanner scanner = new Scanner(System.in);
         Set<String> employees = new HashSet<>(Arrays.asList("MD", "O1", "O2", "C1", "C2", "C3", "C4", "C5"));
-
-        System.out.println("Enter a command (type 'exit' to quit): ");
 
         while (true) {
             String command = scanner.nextLine();
@@ -22,7 +21,7 @@ public class Main {
         }
 
         scanner.close();
-        bank.printOperationsList();
+        bank.printOperationList();
     }
 
     // Method to process the input command
@@ -111,6 +110,7 @@ public class Main {
     // Method to process account command
     private static boolean processAccountCommand(String command, Bank bank, String name) {
         String[] parts = command.split(" ");
+        Account account = bank.getAccount(name);
 
         switch (parts[0].toLowerCase()) {
             case "deposit":
@@ -119,7 +119,7 @@ public class Main {
                     try {
                         double amount = Double.parseDouble(parts[1].replaceAll(",", ""));
                         bank.addOperation(command, name);
-                        bank.deposit(name, amount);
+                        account.deposit(amount, bank);
                     } catch (NumberFormatException e) {
                         System.out.println("Invalid deposit amount format.");
                     }
@@ -135,7 +135,7 @@ public class Main {
                     try {
                         double amount = Double.parseDouble(parts[1].replaceAll(",", ""));
                         bank.addOperation(command, name);
-                        bank.withdraw(name, amount);
+                        account.withdraw(amount, bank);
                     } catch (NumberFormatException e) {
                         System.out.println("Invalid withdraw amount format.");
                     }
@@ -151,7 +151,7 @@ public class Main {
                     try {
                         double amount = Double.parseDouble(parts[1].replaceAll(",", ""));
                         bank.addOperation(command, name);
-                        bank.requestLoan(name, amount);
+                        account.requestLoan(amount, bank);
                     } catch (NumberFormatException e) {
                         System.out.println("Invalid loan request amount format.");
                     }
@@ -164,7 +164,7 @@ public class Main {
             case "query":
                 if (parts.length == 1) {
                     bank.addOperation(command, name);
-                    bank.queryBalance(name);
+                    account.queryBalance(bank);
                 } else {
                     System.out.println("Invalid 'query' command format.");
                 }

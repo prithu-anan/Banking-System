@@ -2,11 +2,11 @@ package bankingSystem;
 
 
 // Account class
-abstract class Account {
+abstract public class Account {
     protected String accountHolder;
     protected double balance;
     protected double loanAmount;
-    protected double MAX_LOAN;
+    protected double MAX_LOAN = Double.MAX_VALUE;
 
     Account(String accountHolder, double initialDeposit) {
         this.accountHolder = accountHolder;
@@ -14,9 +14,13 @@ abstract class Account {
         this.loanAmount = 0;
     }
 
-    abstract boolean deposit(double amount);
+    public abstract void deposit(double amount, Bank bank);
 
-    abstract boolean withdraw(double amount);
+    public abstract void withdraw(double amount, Bank bank);
+
+    public void requestLoan(double amount, Bank bank) { bank.requestLoan(accountHolder, amount); }
+
+    public double queryBalance(Bank bank) { return bank.queryBalance(accountHolder); }
 
     double getBalance() { return balance; }
 
@@ -24,7 +28,7 @@ abstract class Account {
 
     double getLoanAmount() { return loanAmount; }
 
-    void addLoanAmount(double loanAmount) { this.loanAmount += loanAmount; }
+    void setLoanAmount(double loanAmount) { this.loanAmount += loanAmount; }
 
     double getMaxLoan() { return MAX_LOAN; }
 }
@@ -38,18 +42,17 @@ class SavingsAccount extends Account {
     }
 
     @Override
-    boolean deposit(double amount) {
-        balance += amount;
-        return true;
+    public void deposit(double amount, Bank bank) {
+        bank.deposit(accountHolder, amount);
+        System.out.println(amount + "$ deposited; current balance " + balance + "$");
     }
 
     @Override
-    boolean withdraw(double amount) {
+    public void withdraw(double amount, Bank bank) {
         if (balance - amount >= 1000) {
-            balance -= amount;
-            return true;
-        }
-        return false;
+            bank.withdraw(accountHolder, amount);
+            System.out.println(amount + "$ withdrawn; current balance " + balance + "$");
+        } else System.out.println("Invalid transaction; current balance " + balance + "$");
     }
 }
 
@@ -65,18 +68,17 @@ class StudentAccount extends Account {
     }
 
     @Override
-    boolean deposit(double amount) {
-        balance += amount;
-        return true;
+    public void deposit(double amount, Bank bank) {
+        bank.deposit(accountHolder, amount);
+        System.out.println(amount + "$ deposited; current balance " + balance + "$");
     }
 
     @Override
-    boolean withdraw(double amount) {
+    public void withdraw(double amount, Bank bank) {
         if (amount <= MAX_WITHDRAWAL && balance - amount >= 0) {
-            balance -= amount;
-            return true;
-        }
-        return false;
+            bank.withdraw(accountHolder, amount);
+            System.out.println(amount + "$ withdrawn; current balance " + balance + "$");
+        } else System.out.println("Invalid transaction; current balance " + balance + "$");
     }
 }
 
@@ -84,7 +86,7 @@ class StudentAccount extends Account {
 // FixedDepositAccount class
 class FixedDepositAccount extends Account {
     private static final double MIN_INITIAL_DEPOSIT = 100000;
-    private static final double MIN_DEPOSIT = 50000;
+    private final double MIN_DEPOSIT = 50000;
     private boolean hasReachedMaturityPeriod;
 
     FixedDepositAccount(String accountHolder, double initialDeposit) {
@@ -94,24 +96,22 @@ class FixedDepositAccount extends Account {
     }
 
     @Override
-    boolean deposit(double amount) {
+    public void deposit(double amount, Bank bank) {
         if (amount >= MIN_DEPOSIT) {
-            balance += amount;
-            return true;
-        }
-        return false;
+            bank.deposit(accountHolder, amount);
+            System.out.println(amount + "$ deposited; current balance " + balance + "$");
+        } else System.out.println("Invalid transaction; current balance " + balance + "$");
     }
 
     @Override
-    boolean withdraw(double amount) {
+    public void withdraw(double amount, Bank bank) {
         if (hasReachedMaturityPeriod && balance - amount >= 0) {
-            balance -= amount;
-            return true;
-        }
-        return false;
+            bank.withdraw(accountHolder, amount);
+            System.out.println(amount + "$ withdrawn; current balance " + balance + "$");
+        } else System.out.println("Invalid transaction; current balance " + balance + "$");
     }
 
-    static double getInitialMinDeposit() { return MIN_INITIAL_DEPOSIT; }
+    static double getMinInitialDeposit() { return MIN_INITIAL_DEPOSIT; }
 
     public void setHasReachedMaturityPeriod(boolean hasReachedMaturityPeriod) {
         this.hasReachedMaturityPeriod = hasReachedMaturityPeriod;

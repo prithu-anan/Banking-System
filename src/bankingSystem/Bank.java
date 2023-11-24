@@ -2,6 +2,7 @@ package bankingSystem;
 
 import java.util.*;
 
+
 // Bank class
 public class Bank {
     private record Operation(String details, String accountHolder, int year) {}
@@ -64,13 +65,16 @@ public class Bank {
             switch (accountType.toLowerCase()) {
                 case "savings":
                     account = new SavingsAccount(accountHolder, initialDeposit);
+                    internalFunds += initialDeposit;
                     break;
                 case "student":
                     account = new StudentAccount(accountHolder, initialDeposit);
+                    internalFunds += initialDeposit;
                     break;
                 case "fixed deposit":
-                    if (initialDeposit >= FixedDepositAccount.getInitialMinDeposit()) {
+                    if (initialDeposit >= FixedDepositAccount.getMinInitialDeposit()) {
                         account = new FixedDepositAccount(accountHolder, initialDeposit);
+                        internalFunds += initialDeposit;
                     } else {
                         System.out.println("Error: Initial deposit for Fixed Deposit Account must be at least 100,000$");
                         return;
@@ -85,180 +89,6 @@ public class Bank {
                     accountHolder + " created; initial balance " + initialDeposit + "$");
         } else {
             System.out.println("Error: Account already exists for " + accountHolder);
-        }
-    }
-
-    public void deposit(String accountHolder, double amount) {
-        Account account = accounts.get(accountHolder.toLowerCase());
-        if (account != null) {
-            boolean success = account.deposit(amount);
-            if(success) {
-                internalFunds += amount;
-                System.out.println(amount + "$ deposited; current balance " + account.getBalance() + "$");
-            } else {
-                System.out.println("Invalid transaction; current balance " + account.getBalance() + "$");
-            }
-        } else {
-            System.out.println("Error: Account not found for " + accountHolder);
-        }
-    }
-
-    public void withdraw(String accountHolder, double amount) {
-        Account account = accounts.get(accountHolder.toLowerCase());
-        if (account != null) {
-            boolean success = account.withdraw(amount);
-            if (success) {
-                internalFunds -= amount;
-                System.out.println(amount + "$ withdrawn; current balance " + account.getBalance() + "$");
-            } else {
-                System.out.println("Invalid transaction; current balance " + account.getBalance() + "$");
-            }
-        } else {
-            System.out.println("Error: Account not found for " + accountHolder);
-        }
-    }
-
-    public void requestLoan(String accountHolder, double amount) {
-        Account account = accounts.get(accountHolder.toLowerCase());
-        if (account != null) {
-            if (amount + account.getLoanAmount() <= account.getMaxLoan()) {
-                if (amount <= internalFunds) {
-                    Loan loan = new Loan(accountHolder, amount);
-                    loanRequests.add(loan);
-                    loanRequestPending = true;
-                    System.out.println("Loan request successful, sent for approval");
-                } else {
-                    System.out.println("Error: Insufficient internal funds");
-                }
-            } else {
-                System.out.println("Error: Loan amount exceeds maximum loan amount");
-            }
-        } else {
-            System.out.println("Error: Account not found for " + accountHolder);
-        }
-    }
-
-    void approveLoan() {
-        Iterator<Loan> iterator = loanRequests.iterator();
-
-        while (iterator.hasNext()) {
-            Loan loan = iterator.next();
-            Account account = accounts.get(loan.accountHolder().toLowerCase());
-
-            account.addLoanAmount(loan.amount());
-            account.setBalance(account.getBalance() + loan.amount());
-
-            iterator.remove();
-            System.out.println("Loan for " + loan.accountHolder() + " approved");
-        }
-
-        loanRequestPending = false;
-    }
-
-    public double queryBalance(String accountHolder) {
-        Account account = accounts.get(accountHolder.toLowerCase());
-        if (account != null) {
-            if(account.getLoanAmount() == 0)
-                System.out.println("Current Balance " + account.getBalance() + "$");
-            else
-                System.out.println("Current Balance " + account.getBalance()
-                        + "$, loan " + account.getLoanAmount() + "$");
-            return account.getBalance();
-        } else {
-            System.out.println("Error: Account not found for " + accountHolder);
-            return 0;
-        }
-    }
-
-    public void incrementYear() {
-        year++;
-
-        for (Account account : accounts.values()) {
-            double interest = account.getBalance() * getInterestRate(account);
-            double loanInterest = account.getLoanAmount() * LOAN_INTEREST_RATE;
-
-            account.setBalance(account.getBalance() + interest);
-
-            if(account.getBalance() < loanInterest) {
-                account.setBalance(0);
-                account.addLoanAmount(loanInterest - account.getBalance());
-            } else account.setBalance(-loanInterest);
-
-            if(!(account instanceof StudentAccount))
-                if(account.getBalance() < SERVICE_CHARGE) {
-                    account.setBalance(0);
-                    account.addLoanAmount(SERVICE_CHARGE - account.getBalance());
-                } else account.setBalance(account.getBalance() - SERVICE_CHARGE);
-
-            if(account instanceof FixedDepositAccount) ((FixedDepositAccount) account).setHasReachedMaturityPeriod(true);
-        }
-
-        System.out.println("1 year passed");
-    }
-
-    private double getInterestRate(Account account) {
-        if (account instanceof SavingsAccount) {
-            return AccountType.SAVINGS_ACCOUNT.interestRate;
-        } else if (account instanceof StudentAccount) {
-            return AccountType.STUDENT_ACCOUNT.interestRate;
-        } else if (account instanceof FixedDepositAccount) {
-            return AccountType.FIXED_DEPOSIT_ACCOUNT.interestRate;
-        }
-        return 0;
-    }
-
-    void changeInterestRate(String accountType, double newRate) {
-        final double roi = newRate / 100.0;
-        if (accountType.equalsIgnoreCase("savings")) {
-            AccountType.SAVINGS_ACCOUNT.interestRate = roi;
-            System.out.println("Interest rate for Savings Account changed to " + newRate);
-        } else if (accountType.equalsIgnoreCase("student")) {
-            AccountType.STUDENT_ACCOUNT.interestRate = roi;
-            System.out.println("Interest rate for Student Account changed to " + newRate);
-        } else if (accountType.equalsIgnoreCase("fixed deposit")) {
-            AccountType.FIXED_DEPOSIT_ACCOUNT.interestRate = roi;
-            System.out.println("Interest rate for Fixed Deposit Account changed to " + newRate);
-        } else {
-            System.out.println("Error: Invalid account type");
-        }
-    }
-
-    double lookup(String accountHolder) {
-        Account account = accounts.get(accountHolder.toLowerCase());
-        if (account != null) {
-            System.out.println(accountHolder + "'s current balance " + account.getBalance() + "$");
-            return account.getBalance();
-        } else {
-            System.out.println("Error: Account not found for " + accountHolder);
-            return 0;
-        }
-    }
-
-    double seeInternalFund() {
-        System.out.println("Internal Funds: " + internalFunds + "$");
-        return internalFunds;
-    }
-
-    public boolean isAccountExist(String name) {
-        String lowercaseName = name.toLowerCase();
-        return accounts.containsKey(lowercaseName);
-    }
-
-    public Employee getEmployee(String name) {
-        return employees.get(name.toUpperCase());
-    }
-
-    public boolean isLoanRequestPending() { return loanRequestPending; }
-
-    public void addOperation(String details, String accountHolder) {
-        operations.add(new Operation(details, accountHolder, year));
-    }
-
-    public void printOperationsList() {
-        for (Operation operation : operations) {
-            System.out.println("Operation Performed: " + operation.details() +
-                    ", By: " + operation.accountHolder() +
-                    ", In Year: " + operation.year());
         }
     }
 
@@ -281,6 +111,175 @@ public class Bank {
                 System.out.println("Error: Invalid employee type");
                 return null;
             }
+        }
+    }
+
+    void deposit(String accountHolder, double amount) {
+        Account account = accounts.get(accountHolder.toLowerCase());
+        if (account != null) {
+            account.setBalance(account.getBalance() + amount);
+            internalFunds += amount;
+        } else {
+            System.out.println("Error: Account not found for " + accountHolder);
+        }
+    }
+
+    void withdraw(String accountHolder, double amount) {
+        Account account = accounts.get(accountHolder.toLowerCase());
+        if (account != null) {
+            account.setBalance(account.getBalance() - amount);
+            internalFunds -= amount;
+        } else {
+            System.out.println("Error: Account not found for " + accountHolder);
+        }
+    }
+
+    void requestLoan(String accountHolder, double amount) {
+        Account account = accounts.get(accountHolder.toLowerCase());
+        if (account != null) {
+            if (amount + account.getLoanAmount() <= account.getMaxLoan()) {
+                if (amount <= internalFunds) {
+                    Loan loan = new Loan(accountHolder, amount);
+                    loanRequests.add(loan);
+                    loanRequestPending = true;
+                    System.out.println("Loan request successful, sent for approval");
+                } else {
+                    System.out.println("Error: Insufficient internal funds");
+                }
+            } else {
+                System.out.println("Error: Loan amount exceeds maximum loan amount");
+            }
+        } else {
+            System.out.println("Error: Account not found for " + accountHolder);
+        }
+    }
+
+    double queryBalance(String accountHolder) {
+        Account account = accounts.get(accountHolder.toLowerCase());
+        if (account != null) {
+            if(account.getLoanAmount() == 0)
+                System.out.println("Current Balance " + account.getBalance() + "$");
+            else
+                System.out.println("Current Balance " + account.getBalance()
+                        + "$, loan " + account.getLoanAmount() + "$");
+            return account.getBalance();
+        } else {
+            System.out.println("Error: Account not found for " + accountHolder);
+            return 0;
+        }
+    }
+
+    double lookup(String accountHolder) {
+        Account account = accounts.get(accountHolder.toLowerCase());
+        if (account != null) {
+            System.out.println(accountHolder + "'s current balance " + account.getBalance() + "$");
+            return account.getBalance();
+        } else {
+            System.out.println("Error: Account not found for " + accountHolder);
+            return 0;
+        }
+    }
+
+    void approveLoan() {
+        Iterator<Loan> iterator = loanRequests.iterator();
+
+        while (iterator.hasNext()) {
+            Loan loan = iterator.next();
+            Account account = accounts.get(loan.accountHolder().toLowerCase());
+
+            account.setLoanAmount(account.getLoanAmount() + loan.amount());
+            account.setBalance(account.getBalance() + loan.amount());
+
+            iterator.remove();
+            System.out.println("Loan for " + loan.accountHolder() + " approved");
+        }
+
+        loanRequestPending = false;
+    }
+
+    void changeInterestRate(String accountType, double newRate) {
+        final double roi = newRate / 100.0;
+        if (accountType.equalsIgnoreCase("savings")) {
+            AccountType.SAVINGS_ACCOUNT.interestRate = roi;
+            System.out.println("Interest rate for Savings Account changed to " + newRate);
+        } else if (accountType.equalsIgnoreCase("student")) {
+            AccountType.STUDENT_ACCOUNT.interestRate = roi;
+            System.out.println("Interest rate for Student Account changed to " + newRate);
+        } else if (accountType.equalsIgnoreCase("fixed deposit")) {
+            AccountType.FIXED_DEPOSIT_ACCOUNT.interestRate = roi;
+            System.out.println("Interest rate for Fixed Deposit Account changed to " + newRate);
+        } else {
+            System.out.println("Error: Invalid account type");
+        }
+    }
+
+    double seeInternalFund() {
+        System.out.println("Internal Funds: " + internalFunds + "$");
+        return internalFunds;
+    }
+
+    public int incrementYear() {
+        year++;
+
+        for (Account account : accounts.values()) {
+            double interest = account.getBalance() * getInterestRate(account);
+            double loanInterest = account.getLoanAmount() * LOAN_INTEREST_RATE;
+
+            account.setBalance(account.getBalance() + interest);
+
+            if(account.getBalance() < loanInterest) {
+                account.setLoanAmount(account.getLoanAmount() + loanInterest - account.getBalance());
+                account.setBalance(0);
+            } else account.setBalance(account.getBalance() - loanInterest);
+
+            if(!(account instanceof StudentAccount))
+                if(account.getBalance() < SERVICE_CHARGE) {
+                    account.setLoanAmount(account.getLoanAmount() + SERVICE_CHARGE - account.getBalance());
+                    account.setBalance(0);
+                } else account.setBalance(account.getBalance() - SERVICE_CHARGE);
+
+            if(account instanceof FixedDepositAccount) ((FixedDepositAccount) account).setHasReachedMaturityPeriod(true);
+        }
+
+        System.out.println(year + " year(s) passed");
+        return year;
+    }
+
+    private double getInterestRate(Account account) {
+        if (account instanceof SavingsAccount) {
+            return AccountType.SAVINGS_ACCOUNT.interestRate;
+        } else if (account instanceof StudentAccount) {
+            return AccountType.STUDENT_ACCOUNT.interestRate;
+        } else if (account instanceof FixedDepositAccount) {
+            return AccountType.FIXED_DEPOSIT_ACCOUNT.interestRate;
+        }
+        return 0;
+    }
+
+    public boolean isAccountExist(String name) {
+        String lowercaseName = name.toLowerCase();
+        return accounts.containsKey(lowercaseName);
+    }
+
+    public Account getAccount(String name) {
+        return accounts.get(name.toLowerCase());
+    }
+
+    public Employee getEmployee(String name) {
+        return employees.get(name.toUpperCase());
+    }
+
+    public boolean isLoanRequestPending() { return loanRequestPending; }
+
+    public void addOperation(String details, String accountHolder) {
+        operations.add(new Operation(details, accountHolder, year));
+    }
+
+    public void printOperationList() {
+        for (Operation operation : operations) {
+            System.out.println("Operation Performed: " + operation.details() +
+                    ", By: " + operation.accountHolder() +
+                    ", In Year: " + operation.year());
         }
     }
 }
